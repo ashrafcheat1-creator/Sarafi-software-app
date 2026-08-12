@@ -4,132 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>د صرافۍ او حسابونو (کتابچې) جامع سسټم</title>
+    <!-- HTML2PDF CDN for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
-        body { background-color: #f1f5f9; color: #1e293b; padding: 12px; }
-        .header { background: #0f172a; color: #fff; text-align: center; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .header h1 { font-size: 1.3rem; }
-        .card { background: #ffffff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        body { background-color: #f1f5f9; color: #1e293b; padding: 10px; }
+        
+        /* Top Navigation Menu */
+        .navbar { display: flex; background: #0f172a; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .nav-btn { flex: 1; padding: 12px 5px; color: #cbd5e1; background: none; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .nav-btn.active { background: #2563eb; color: #ffffff; }
+
+        .card { background: #ffffff; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .card h2 { font-size: 1.1rem; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
         .form-group { margin-bottom: 10px; }
         label { display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 600; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; }
-        button { width: 100%; background-color: #2563eb; color: white; border: none; padding: 11px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
-        button.btn-success { background-color: #16a34a; }
-        button.btn-danger { background-color: #dc2626; }
-        button:active { opacity: 0.85; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+        
+        .btn { width: 100%; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-primary { background-color: #2563eb; }
+        .btn-success { background-color: #16a34a; }
+        .btn-pdf { background-color: #dc2626; width: auto; padding: 6px 12px; font-size: 0.8rem; }
+        .btn-add { background-color: #0284c7; width: auto; padding: 6px 12px; font-size: 0.8rem; }
+        
         .search-box { background: #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem; }
-        th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th, td { border: 1px solid #cbd5e1; padding: 6px; text-align: center; }
         th { background-color: #f8fafc; }
-        .khata-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .khata-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+        
+        .khata-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+        .khata-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 8px; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .badge-jama { background: #dcfce7; color: #15803d; }
         .badge-nama { background: #fee2e2; color: #b91c1c; }
-        .flex-gap { display: flex; gap: 8px; }
+        .action-btns { display: flex; gap: 5px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>د صرافۍ، تبادلې او حسابونو سسټم</h1>
+    <!-- Main Navigation Menu -->
+    <div class="navbar">
+        <button class="nav-btn active" onclick="switchTab('khataTab', this)">📖 کتابچه (حسابونه)</button>
+        <button class="nav-btn" onclick="switchTab('exchangeTab', this)">💱 اسعار بدلول</button>
+        <button class="nav-btn" onclick="switchTab('hawalaTab', this)">💸 حوالې</button>
     </div>
 
-    <!-- Search Bar -->
-    <div class="search-box">
-        <label>🔍 لټون (د نوم، تاریخ، یا تفصیل له مخې):</label>
-        <input type="text" id="searchInput" oninput="searchData()" placeholder="دلته یې وټایپ کړئ...">
-    </div>
-
-    <!-- New Khata Creation -->
-    <div class="card">
-        <h2>➕ د نوي حساب (کتابچې) خلاصول</h2>
-        <div class="form-group">
-            <label>د پریدونکي (مشتري) مکمل نوم:</label>
-            <input type="text" id="newKhataName" placeholder="مثلاً: احمد خان">
+    <!-- KHATA TAB -->
+    <div id="khataTab" class="tab-content active">
+        <!-- Search Bar -->
+        <div class="search-box">
+            <label>🔍 د حسابونو لټون (نوم، تاریخ، یا تفصیل):</label>
+            <input type="text" id="searchInput" oninput="searchData()" placeholder="دلته یې وټایپ کړئ...">
         </div>
-        <div class="form-group">
-            <label>د تلیفون شمیره / ولایت:</label>
-            <input type="text" id="newKhataPhone" placeholder="مثلاً: 0780000000">
+
+        <!-- Add New Khata Form -->
+        <div class="card">
+            <h2>➕ د نوي سړي کتابچه (حساب خلاصول)</h2>
+            <div class="form-group">
+                <label>د پریدونکي (مشتري) پوره نوم:</label>
+                <input type="text" id="newKhataName" placeholder="مثلاً: احمد خان">
+            </div>
+            <div class="form-group">
+                <label>د تلیفون شمیره / ولایت:</label>
+                <input type="text" id="newKhataPhone" placeholder="مثلاً: 0780000000">
+            </div>
+            <button class="btn btn-success" onclick="createKhata()">نوی حساب خلاص کړئ</button>
         </div>
-        <button class="btn-success" onclick="createKhata()">نوی حساب خلاص کړئ</button>
+
+        <!-- All Khatas List -->
+        <div class="card">
+            <h2>📚 د ټولو خلکو کتابچې</h2>
+            <div id="khataContainer">
+                <!-- Khata records load here -->
+            </div>
+        </div>
     </div>
 
-    <!-- Exchange Calculator -->
-    <div class="card">
-        <h2>💱 د اسعارو بدلول (Exchange Calculator)</h2>
-        <div class="flex-gap">
-            <div class="form-group" style="flex:1;">
-                <label>مبلغ:</label>
+    <!-- EXCHANGE CALCULATOR TAB -->
+    <div id="exchangeTab" class="tab-content">
+        <div class="card">
+            <h2>💱 د اسعارو بدلولو محاسبه</h2>
+            <div class="form-group">
+                <label>مبلغ (مقدار):</label>
                 <input type="number" id="calcAmount" placeholder="100">
             </div>
-            <div class="form-group" style="flex:1;">
+            <div class="form-group">
                 <label>نرخ (Rate):</label>
                 <input type="number" id="calcRate" placeholder="70.5">
             </div>
+            <button class="btn btn-primary" onclick="calculateExchange()">حساب کړئ</button>
+            <h3 id="calcResult" style="margin-top:10px; color:#2563eb; text-align:center;"></h3>
         </div>
-        <button onclick="calculateExchange()">حساب کړئ</button>
-        <h3 id="calcResult" style="margin-top:10px; color:#2563eb; text-align:center;"></h3>
     </div>
 
-    <!-- Khata List and Hisab Entry -->
-    <div class="card">
-        <h2>📚 د پیرودونکو حسابونه (کتابچه)</h2>
-        <div id="khataContainer">
-            <!-- Khatas will load dynamically -->
+    <!-- HAWALA TAB -->
+    <div id="hawalaTab" class="tab-content">
+        <div class="card">
+            <h2>د نوي حوالې ثبتول</h2>
+            <div class="form-group">
+                <label>لیږونکی:</label>
+                <input type="text" id="hSender" placeholder="نوم">
+            </div>
+            <div class="form-group">
+                <label>ترلاسه کونکی:</label>
+                <input type="text" id="hReceiver" placeholder="نوم">
+            </div>
+            <div class="form-group">
+                <label>مبلغ او اسعار:</label>
+                <input type="text" id="hAmount" placeholder="500 ډالر">
+            </div>
+            <button class="btn btn-primary" onclick="addHawala()">حواله ثبت کړئ</button>
+            <div id="hawalaList" style="margin-top:15px;"></div>
         </div>
     </div>
 
     <script>
-        // Load stored data or initialize
-        let khatas = JSON.parse(localStorage.getItem('sarrafi_khatas')) || [];
+        // Storage logic
+        let khatas = JSON.parse(localStorage.getItem('sarrafi_khatas_v2')) || [];
+        let hawalas = JSON.parse(localStorage.getItem('sarrafi_hawalas_v2')) || [];
 
-        function saveToStorage() {
-            localStorage.setItem('sarrafi_khatas', JSON.stringify(khatas));
+        function saveData() {
+            localStorage.setItem('sarrafi_khatas_v2', JSON.stringify(khatas));
+            localStorage.setItem('sarrafi_hawalas_v2', JSON.stringify(hawalas));
         }
 
-        // Create New Khata with Duplicate Check
+        // Tab Switching
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Create Khata (With Duplicate Prevention)
         function createKhata() {
-            let nameInput = document.getElementById('newKhataName').value.trim();
-            let phoneInput = document.getElementById('newKhataPhone').value.trim();
+            let name = document.getElementById('newKhataName').value.trim();
+            let phone = document.getElementById('newKhataPhone').value.trim();
 
-            if (!nameInput) {
-                alert("مهرباني وکړئ د پریدونکي نوم ولیکئ!");
+            if (!name) {
+                alert("مهرباني وکړئ د سړي نوم ولیکئ!");
                 return;
             }
 
-            // Check if Khata with same name already exists
-            let exists = khatas.some(k => k.name.toLowerCase() === nameInput.toLowerCase());
+            let exists = khatas.some(k => k.name.toLowerCase() === name.toLowerCase());
             if (exists) {
-                alert("⚠️ په دې نوم دمخه حساب شتون لري! لطفا د نوم تر څنګ څه اضافی کلمه یا شمیره ولیکئ.");
+                alert("⚠️ په دې نوم دمخه حساب شتون لري! مهرباني وکړئ د نوم تر څنګ څه اضافي واچوئ.");
                 return;
             }
 
-            let newKhata = {
+            khatas.push({
                 id: Date.now(),
-                name: nameInput,
-                phone: phoneInput || "نه دی درج شوی",
+                name: name,
+                phone: phone || "مشخص شوی نه دی",
                 entries: []
-            };
+            });
 
-            khatas.push(newKhata);
-            saveToStorage();
+            saveData();
             renderKhatas();
-
             document.getElementById('newKhataName').value = "";
             document.getElementById('newKhataPhone').value = "";
-            alert("حساب په بریالیتوب سره خلاص شو!");
+            alert("حساب خلاص شو!");
         }
 
-        // Add Transaction/Hisab into a Khata
+        // Add Transaction Entry into Khata
         function addHisab(khataId) {
             let amount = prompt("مبلغ (مقدار) ولیکئ:");
             if (!amount || isNaN(amount)) return;
 
-            let currency = prompt("اسعار ولیکئ (ډالر / افغانۍ / کلدارې):", "افغانۍ");
-            let type = prompt("نوعیت انتخاب کړئ:\n 1 د 'جمع' (جمع کول) لپاره\n 2 د 'نوم' (وړل/قرض) لپاره", "1");
-            let detail = prompt("تفصیل / تفصیلات ولیکئ:", "د صرافۍ حساب");
+            let currency = prompt("اسعار (ډالر / افغانۍ / کلدارې):", "افغانۍ");
+            let type = prompt("نوعیت:\n1 = جمع (اخیستنه)\n2 = نوم (وړل/قرض)", "1");
+            let detail = prompt("تفصیل:", "د صرافۍ تبادله");
             let date = new Date().toLocaleDateString('fa-IR') + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             let khata = khatas.find(k => k.id === khataId);
@@ -142,7 +188,7 @@
                     type: type === "2" ? "نوم (ورکړه)" : "جمع (اخیستنه)",
                     detail: detail
                 });
-                saveToStorage();
+                saveData();
                 renderKhatas();
             }
         }
@@ -163,18 +209,21 @@
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#64748b;'>هیڅ حساب وانخیستل شو.</p>";
+                container.innerHTML = "<p style='text-align:center; color:#64748b;'>هیڅ حساب ونه موندل شو.</p>";
                 return;
             }
 
             filtered.forEach(k => {
                 let html = `
-                    <div class="khata-item">
+                    <div class="khata-card" id="pdf-card-${k.id}">
                         <div class="khata-header">
                             <div>
-                                <strong>👤 ${k.name}</strong> <small>(${k.phone})</small>
+                                <strong>👤 ${k.name}</strong> <br><small>📱 ${k.phone}</small>
                             </div>
-                            <button style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="addHisab(${k.id})">➕ نوی حساب ثبتول</button>
+                            <div class="action-btns">
+                                <button class="btn btn-add" onclick="addHisab(${k.id})">➕ ثبتول</button>
+                                <button class="btn btn-pdf" onclick="downloadPDF(${k.id}, '${k.name}')">📄 PDF</button>
+                            </div>
                         </div>
                         <table>
                             <thead>
@@ -196,7 +245,7 @@
                                         <td>${e.detail}</td>
                                     </tr>
                                 `).join('')}
-                                ${k.entries.length === 0 ? '<tr><td colspan="5">تر اوسه هیڅ راکړه ورکړه نه ده ثبت شوې.</td></tr>' : ''}
+                                ${k.entries.length === 0 ? '<tr><td colspan="5">هیڅ راکړه ورکړه نشته</td></tr>' : ''}
                             </tbody>
                         </table>
                     </div>
@@ -211,20 +260,51 @@
             renderKhatas(text);
         }
 
+        // Download Khata as PDF
+        function downloadPDF(khataId, khataName) {
+            let element = document.getElementById(`pdf-card-${khataId}`);
+            let opt = {
+                margin:       8,
+                filename:     `Khata_${khataName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
         // Exchange Calculator
         function calculateExchange() {
             let amount = document.getElementById('calcAmount').value;
             let rate = document.getElementById('calcRate').value;
             if(amount && rate) {
-                let total = amount * rate;
-                document.getElementById('calcResult').innerText = "مجموعه: " + total.toFixed(2);
-            } else {
-                document.getElementById('calcResult').innerText = "مهرباني وکړئ دواړه خانې ډکې کړئ.";
+                document.getElementById('calcResult').innerText = "مجموعه: " + (amount * rate).toFixed(2);
             }
         }
 
-        // Initial render
+        // Hawala Logic
+        function addHawala() {
+            let sender = document.getElementById('hSender').value;
+            let receiver = document.getElementById('hReceiver').value;
+            let amount = document.getElementById('hAmount').value;
+            if (sender && receiver && amount) {
+                hawalas.push({ sender, receiver, amount, code: 'HW-' + Math.floor(10000 + Math.random() * 90000) });
+                saveData();
+                renderHawalas();
+                document.getElementById('hSender').value = "";
+                document.getElementById('hReceiver').value = "";
+                document.getElementById('hAmount').value = "";
+            }
+        }
+
+        function renderHawalas() {
+            let div = document.getElementById('hawalaList');
+            div.innerHTML = hawalas.map(h => `<p style="padding:6px; border-bottom:1px solid #ccc;"><b>${h.code}</b>: ${h.sender} ➔ ${h.receiver} (${h.amount})</p>`).join('');
+        }
+
+        // Initial rendering
         renderKhatas();
+        renderHawalas();
     </script>
 </body>
 </html>
